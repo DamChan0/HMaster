@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cpal = "0.15.2"
+cpal = "0.16.0"
+biquad = "0.5.0"
 rodio = { version = "0.20.1", default-features = false , features = ["symphonia-all"] }
 clap = { version = "4.4.8", features = ["derive"] }
 anyhow = "1.0" # 에러 핸들링을 편리하게 해준다.
+thiserror = "2.0.12"

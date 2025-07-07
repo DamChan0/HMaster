@@ -1,11 +1,15 @@
 mod FilePlay;
+mod equalization;
 mod loopback;
+mod loopback_eq;
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
-use cpal::traits::HostTrait;
+use core::error;
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait}; // DeviceTrait 추가
+use equalization::{BiquadEq, EqError, select_loopback_input_device, select_output_device};
 use loopback::Loopback;
-use rodio::DeviceTrait;
+use std::sync::Arc;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -16,30 +20,35 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
-    let volume = cli.volume.clamp(0.0, 1.0);
-    println!("오디오 프로세싱 시작. 볼륨: {}%", volume * 100.0);
+    let input_device = equalization::select_loopback_input_device()?; // loopback 없으면 default mic
 
-    let host = cpal::default_host();
-    let input_device = host
-        .default_input_device()
-        .ok_or_else(|| anyhow!("입력 디바이스가 없습니다"))?;
-    let output_device = host
-        .default_output_device()
-        .ok_or_else(|| anyhow!("출력 디바이스가 없습니다"))?;
+    let output_device = match select_output_device() {
+        Ok(device) => device,
+        Err(EqError::NoOutputDevice) => {
+            return Err(anyhow!("출력 장치를 찾을 수 없습니다."));
+        }
+        Err(e) => {
+            return Err(anyhow!("출력 장치 선택 오류: {:?}", e));
+        }
+    };
+    for config in input_device.supported_input_configs()? {
+        println!("지원 입력: {:?}", config);
+    }
+    for config in output_device.supported_output_configs()? {
+        println!("지원 출력: {:?}", config);
+    }
+    println!("선택된 입력 장치: {}", input_device.name()?);
+    println!("선택된 출력 장치: {}", output_device.name()?);
 
-    println!("입력 장치:  {}", input_device.name()?);
-    println!("출력 장치:  {}", output_device.name()?);
+    // 2) 볼륨 및 EQ 설정
+    let volume = 1.0;
 
-    // 파일 재생 (기존 FilePlay 모듈)
-    // FilePlay::play_file("audio.wav")?;
-
-    // 실시간 루프백
-    let lb = Loopback::new(input_device, output_device, volume)?;
+    // 3) EQ 루프백 스트림 생성 및 실행
+    let lb = loopback_eq::LoopbackWithEq::new(input_device, output_device, volume)?;
     lb.play()?;
 
-    println!("실시간 루프백 재생 중... Ctrl+C로 종료");
-    loop {
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
+    println!("EQ 모드 실행 중... 종료하려면 Ctrl+C");
+    std::thread::park(); // 대기
+
+    Ok(())
 }
