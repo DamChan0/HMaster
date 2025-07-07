@@ -10,6 +10,7 @@ dependencies = [
  "biquad",
  "clap",
  "cpal 0.16.0",
+ "ringbuf",
  "rodio",
  "thiserror 2.0.12",
 ]
@@ -357,6 +358,12 @@ dependencies = [
  "web-sys",
  "windows",
 ]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "dasp_sample"
@@ -832,6 +839,15 @@ name = "regex-syntax"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
+
+[[package]]
+name = "ringbuf"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79abed428d1fd2a128201cec72c5f6938e2da607c6f3745f769fabea399d950a"
+dependencies = [
+ "crossbeam-utils",
+]
 
 [[package]]
 name = "rodio"

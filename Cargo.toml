@@ -10,3 +10,4 @@ rodio = { version = "0.20.1", default-features = false , features = ["symphonia-
 clap = { version = "4.4.8", features = ["derive"] }
 anyhow = "1.0" # 에러 핸들링을 편리하게 해준다.
 thiserror = "2.0.12"
+ringbuf = "0.3" # 스레드 간 오디오 데이터 전송을 위함
