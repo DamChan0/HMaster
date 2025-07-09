@@ -175,8 +175,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 초기 필터 생성
     update_filters(&filters, &settings, sample_rate, channels)?;
 
+    let latency_ms = 50.0;
+    let latency_frames = (latency_ms / 1000.0) * sample_rate as f32;
+    let ring_buffer_size = (latency_frames as usize) * channels;
     // --- 스트림 생성 시, Arc를 복제(clone)하여 넘겨줍니다 ---
-    let ring_buffer_size = sample_rate as usize * channels * 2;
     let (mut producer, mut consumer) = HeapRb::<f32>::new(ring_buffer_size).split();
     let input_stream = input_device.build_input_stream(
         &config,
